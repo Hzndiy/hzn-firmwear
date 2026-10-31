@@ -1,0 +1,38 @@
+name: Build ESP32 Firmware
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build Firmware (PlatformIO)
+        run: pio run
+
+      - name: Upload Bin File as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: .pio/build/esp32s3/firmware.bin
